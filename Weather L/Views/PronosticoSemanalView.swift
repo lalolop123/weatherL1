@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PronosticoSemanalView: View {
     let pronostico: [DailyForecast]
+    let usarFahrenheit: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 15) {
@@ -21,7 +22,7 @@ struct PronosticoSemanalView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 15) {
                     ForEach(Array(pronostico.enumerated()), id: \.offset) { index, dia in
-                        TarjetaDia(dia: dia, index: index)
+                        TarjetaDia(dia: dia, index: index, usarFahrenheit: usarFahrenheit)
                     }
                 }
                 .padding(.horizontal)
@@ -33,6 +34,7 @@ struct PronosticoSemanalView: View {
 struct TarjetaDia: View {
     let dia: DailyForecast
     let index: Int
+    let usarFahrenheit: Bool
     
     var body: some View {
         VStack(spacing: 10) {
@@ -45,12 +47,12 @@ struct TarjetaDia: View {
                 .foregroundColor(.white)
             
             VStack(spacing: 5) {
-                Text("\(Int(dia.values.temperatureMax))°")
+                Text(temperaturaMaxTexto)
                     .font(.title3)
                     .bold()
                     .foregroundColor(.white)
-                
-                Text("\(Int(dia.values.temperatureMin))°")
+
+                Text(temperaturaMinTexto)
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.7))
             }
@@ -102,11 +104,28 @@ struct TarjetaDia: View {
         default: return "cloud.fill"
         }
     }
+    var temperaturaMaxTexto: String {
+        let temp = usarFahrenheit ? celsiusAFahrenheit(dia.values.temperatureMax) : dia.values.temperatureMax
+        let simbolo = usarFahrenheit ? "°F" : "°C"
+        return String(format: "%.0f%@", temp, simbolo)
+    }
+
+    var temperaturaMinTexto: String {
+        let temp = usarFahrenheit ? celsiusAFahrenheit(dia.values.temperatureMin) : dia.values.temperatureMin
+        let simbolo = usarFahrenheit ? "°F" : "°C"
+        return String(format: "%.0f%@", temp, simbolo)
+    }
+
+    private func celsiusAFahrenheit(_ celsius: Double) -> Double {
+        return (celsius * 9/5) + 32
+    }
+    
 }
 
 #Preview {
     ZStack {
         Color.blue.ignoresSafeArea()
-        PronosticoSemanalView(pronostico: [])
+        PronosticoSemanalView(pronostico: [], usarFahrenheit: false)
     }
 }
+    

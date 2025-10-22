@@ -14,7 +14,7 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Fondo degradado
+                // Fondo dinámico según el clima
                 fondoDinamico
                     .ignoresSafeArea()
                 
@@ -115,42 +115,52 @@ struct ContentView: View {
                                             color: .yellow
                                         )
                                     }
-                                    // Calidad del aire
-                                    CalidadAireView(calidadAire: viewModel.calidadAire)
-                                        .padding(.top, 10)
-                                    
-                                    // Pronóstico semanal
-                                    if !viewModel.pronosticoSemanal.isEmpty {
-                                        PronosticoSemanalView(pronostico: viewModel.pronosticoSemanal)
-                                            .padding(.top, 10)
-                                    }
                                 }
                                 .padding(.horizontal)
+                                
+                                // Calidad del aire
+                                CalidadAireView(calidadAire: viewModel.calidadAire)
+                                    .padding(.top, 10)
+                                
+                                // Pronóstico semanal
+                                if !viewModel.pronosticoSemanal.isEmpty {
+                                    PronosticoSemanalView(pronostico: viewModel.pronosticoSemanal, usarFahrenheit: viewModel.usarFahrenheit)
+                                        .padding(.top, 10)
+                                }
                             }
                         }
                     }
                     
                     Spacer()
-                    
-                    // Botón cambiar ciudad
-                    Button {
-                        mostrarCambioCiudad = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "location.circle.fill")
-                            Text("Cambiar Ciudad")
-                                .bold()
-                        }
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(12)
-                    }
-                    .foregroundColor(.white)
-                    .padding(.bottom, 20)
                 }
             }
-            .navigationTitle(viewModel.ciudadSeleccionada)
+            .navigationTitle(viewModel.nombreCiudadActual)
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    HStack(spacing: 15) {
+                        // Botón para cambiar unidad
+                        Button {
+                            viewModel.cambiarUnidad()
+                        } label: {
+                            Text(viewModel.usarFahrenheit ? "°F" : "°C")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding(8)
+                                .background(.ultraThinMaterial)
+                                .cornerRadius(8)
+                        }
+                        
+                        // Botón para cambiar ciudad
+                        Button {
+                            mostrarCambioCiudad = true
+                        } label: {
+                            Image(systemName: "location.circle.fill")
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+            }
             .sheet(isPresented: $mostrarCambioCiudad) {
                 CambiarCiudadView(viewModel: viewModel)
             }
@@ -158,6 +168,39 @@ struct ContentView: View {
         .task {
             await viewModel.buscarClima()
         }
+    }
+    
+    // Fondo que cambia según el clima
+    private var fondoDinamico: some View {
+        let colores: [Color]
+        
+        if let codigo = viewModel.clima?.values.weatherCode {
+            switch codigo {
+            case 1000: // Despejado
+                colores = [.orange, .yellow, .pink]
+            case 1100, 1101: // Parcialmente nublado
+                colores = [.blue.opacity(0.7), .cyan, .white]
+            case 1001, 1102: // Nublado
+                colores = [.gray, .blue.opacity(0.5)]
+            case 4000...4201: // Lluvia
+                colores = [.blue.opacity(0.8), .indigo, .purple.opacity(0.6)]
+            case 5000...5101: // Nieve
+                colores = [.white, .cyan.opacity(0.5), .blue.opacity(0.3)]
+            case 8000: // Tormenta
+                colores = [.black.opacity(0.7), .purple.opacity(0.8), .indigo]
+            default:
+                colores = [.blue, .purple.opacity(0.7)]
+            }
+        } else {
+            colores = [.blue, .purple.opacity(0.7)]
+        }
+        
+        return LinearGradient(
+            colors: colores,
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .animation(.easeInOut(duration: 1.0), value: viewModel.clima?.values.weatherCode)
     }
     
     // Función para obtener el ícono según el código
@@ -193,38 +236,6 @@ struct ContentView: View {
         case 8000: return "Tormenta"
         default: return "Variado"
         }
-    }
-    // Fondo que cambia según el clima
-    private var fondoDinamico: some View {
-        let colores: [Color]
-        
-        if let codigo = viewModel.clima?.values.weatherCode {
-            switch codigo {
-            case 1000: // Despejado
-                colores = [.orange, .yellow, .pink]
-            case 1100, 1101: // Parcialmente nublado
-                colores = [.blue.opacity(0.7), .cyan, .white]
-            case 1001, 1102: // Nublado
-                colores = [.gray, .blue.opacity(0.5)]
-            case 4000...4201: // Lluvia
-                colores = [.blue.opacity(0.8), .indigo, .purple.opacity(0.6)]
-            case 5000...5101: // Nieve
-                colores = [.white, .cyan.opacity(0.5), .blue.opacity(0.3)]
-            case 8000: // Tormenta
-                colores = [.black.opacity(0.7), .purple.opacity(0.8), .indigo]
-            default:
-                colores = [.blue, .purple.opacity(0.7)]
-            }
-        } else {
-            colores = [.blue, .purple.opacity(0.7)]
-        }
-        
-        return LinearGradient(
-            colors: colores,
-            startPoint: .top,
-            endPoint: .bottom
-        )
-        .animation(.easeInOut(duration: 1.0), value: viewModel.clima?.values.weatherCode)
     }
 }
 
