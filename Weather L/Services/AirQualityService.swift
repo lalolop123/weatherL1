@@ -27,7 +27,7 @@ class AirQualityService {
         do {
             let (data, respuesta) = try await URLSession.shared.data(from: url)
             
-            // Ver respuesta
+            // Ver respuesta del api de la calidad de aire
             if let jsonString = String(data: data, encoding: .utf8) {
                 print("📄 Respuesta OpenWeather: \(jsonString)")
             }
@@ -45,7 +45,6 @@ class AirQualityService {
             let decoder = JSONDecoder()
             let airQualityResponse = try decoder.decode(OpenWeatherAirQuality.self, from: data)
             
-            // Convertir a nuestro formato
             let components = airQualityResponse.list.first?.components
             let aqi = airQualityResponse.list.first?.main.aqi
             
