@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Tipos de errores posibles
+
 enum WeatherError: Error {
     case ciudadInvalida
     case sinInternet
@@ -38,10 +38,9 @@ class WeatherService {
     // Función principal para obtener el clima
     func obtenerClima(ciudad: String) async throws -> WeatherResponse {
         
-        // 1. Obtenemos las coordenadas usando geocodificación
+        // Obtener las coordenadas
         let (lat, lon, nombreCiudad) = try await geocoder.obtenerCoordenadas(ciudad: ciudad)
-        
-        // 2. Construimos la URL
+       
         let urlCompleta = "\(baseURL)/weather/realtime?location=\(lat),\(lon)&apikey=\(apiKey)&units=metric"
         
         print("🌐 Consultando API: \(urlCompleta)")
@@ -50,11 +49,9 @@ class WeatherService {
             throw WeatherError.errorDelServidor
         }
         
-        // 3. Hacemos la petición
         do {
             let (data, respuesta) = try await URLSession.shared.data(from: url)
             
-            // 4. Verificamos que salió bien
             guard let httpRespuesta = respuesta as? HTTPURLResponse else {
                 throw WeatherError.errorDelServidor
             }
@@ -65,11 +62,10 @@ class WeatherService {
                 throw WeatherError.errorDelServidor
             }
             
-            // 5. Convertimos el JSON
             let decoder = JSONDecoder()
             var clima = try decoder.decode(WeatherResponse.self, from: data)
             
-            // Actualizamos el nombre de la ubicación con el geocodificado
+            
             clima.location.nombre = nombreCiudad
             
             print("✅ Clima obtenido exitosamente para \(nombreCiudad)")
@@ -90,7 +86,7 @@ class WeatherService {
         
         let (lat, lon, _) = try await geocoder.obtenerCoordenadas(ciudad: ciudad)
         
-        // URL para pronóstico diario
+        
         let urlCompleta = "\(baseURL)/weather/forecast?location=\(lat),\(lon)&apikey=\(apiKey)&units=metric&timesteps=1d"
         
         print("🌐 Consultando pronóstico semanal: \(urlCompleta)")
