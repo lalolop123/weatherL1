@@ -22,6 +22,33 @@ struct CambiarCiudadView: View {
         NavigationView {
             VStack(spacing: 20) {
                 
+                // Botón grande para usar ubicación GPS
+                Button {
+                    Task {
+                        await viewModel.usarUbicacionActual()
+                        dismiss()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "location.fill")
+                            .font(.title2)
+                        Text("Usar Mi Ubicación Actual")
+                            .font(.headline)
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(
+                        LinearGradient(
+                            colors: [.blue, .cyan],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal)
+                
                 Text("Selecciona una ciudad")
                     .font(.title2)
                     .bold()

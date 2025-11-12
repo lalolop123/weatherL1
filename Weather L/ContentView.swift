@@ -137,6 +137,32 @@ struct ContentView: View {
             .navigationTitle(viewModel.nombreCiudadActual)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    HStack(spacing: 10) {
+                        // Botón para usar ubicación actual (GPS)
+                        Button {
+                            Task {
+                                await viewModel.usarUbicacionActual()
+                            }
+                        } label: {
+                            Image(systemName: viewModel.usandoUbicacionActual ? "location.fill" : "location")
+                                .foregroundColor(viewModel.usandoUbicacionActual ? .green : .white)
+                        }
+                        
+                        // Botón para agregar/quitar de favoritas
+                        Button {
+                            if viewModel.esCiudadFavorita() {
+                                viewModel.eliminarDeFavoritas(viewModel.nombreCiudadActual)
+                            } else {
+                                viewModel.agregarAFavoritas()
+                            }
+                        } label: {
+                            Image(systemName: viewModel.esCiudadFavorita() ? "star.fill" : "star")
+                                .foregroundColor(viewModel.esCiudadFavorita() ? .yellow : .white)
+                        }
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack(spacing: 15) {
                         // Botón para cambiar unidad
@@ -151,11 +177,11 @@ struct ContentView: View {
                                 .cornerRadius(8)
                         }
                         
-                        // Botón para cambiar ciudad
+                        // Botón para cambiar ciudad manualmente
                         Button {
                             mostrarCambioCiudad = true
                         } label: {
-                            Image(systemName: "location.circle.fill")
+                            Image(systemName: "magnifyingglass")
                                 .foregroundColor(.white)
                         }
                     }
