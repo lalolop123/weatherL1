@@ -130,3 +130,26 @@ struct Location: Codable {
         }
     }
 
+// Pronóstico por hora
+struct HourlyForecastResponse: Codable {
+    let timelines: HourlyTimelines
+    let location: Location
+}
+
+struct HourlyTimelines: Codable {
+    let hourly: [HourlyForecast]
+}
+
+struct HourlyForecast: Codable {
+    let time: String
+    let values: HourlyValues
+}
+
+struct HourlyValues: Codable {
+    let temperature: Double
+    let weatherCode: Int
+    let precipitationProbability: Double
+    let windSpeed: Double
+    let humidity: Double
+}
+

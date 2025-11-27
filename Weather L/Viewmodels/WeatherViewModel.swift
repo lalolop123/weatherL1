@@ -28,6 +28,8 @@ class WeatherViewModel: ObservableObject {
     @Published var locationManager = LocationManager()
     @Published var usandoUbicacionActual = false
     @Published var ciudadesFavoritas: [String] = []
+    @Published var pronosticoHorario: [HourlyForecast] = []
+    @Published var ultimaActualizacion: Date?
 
     
     init() {
@@ -55,13 +57,15 @@ class WeatherViewModel: ObservableObject {
             // Primero obtenemos clima y pronóstico
             async let climaActual = servicio.obtenerClima(ciudad: ciudadSeleccionada)
             async let pronostico = servicio.obtenerPronosticoSemanal(ciudad: ciudadSeleccionada)
+            async let horario = servicio.obtenerPronosticoHorario(ciudad: ciudadSeleccionada)
             
-            let (respuestaClima, respuestaPronostico) = try await (climaActual, pronostico)
+            let (respuestaClima, respuestaPronostico, respuestaHorario) = try await (climaActual, pronostico, horario)
 
             self.clima = respuestaClima.data
             self.ubicacion = respuestaClima.location
             self.nombreCiudadActual = respuestaClima.location.nombre ?? ciudadSeleccionada
             self.pronosticoSemanal = Array(respuestaPronostico.prefix(7))
+            self.pronosticoHorario = respuestaHorario
             
             // Ahora obtenemos calidad del aire con las coordenadas
             let lat = respuestaClima.location.lat
@@ -71,6 +75,7 @@ class WeatherViewModel: ObservableObject {
             self.calidadAire = respuestaAire
             
             print("✅ Clima, pronóstico y calidad del aire actualizados")
+            self.ultimaActualizacion = Date()
         } catch let error as WeatherError {
             self.mensajeError = error.mensaje
             print("❌ Error: \(error.mensaje)")

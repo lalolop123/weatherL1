@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var viewModel = WeatherViewModel()
+    @ObservedObject var viewModel: WeatherViewModel
     @State private var mostrarCambioCiudad = false
     
     var body: some View {
@@ -79,40 +79,99 @@ struct ContentView: View {
                                     Text("Sensación: \(viewModel.sensacionTermica)")
                                         .font(.title3)
                                         .foregroundColor(.white.opacity(0.8))
+                                    
+                                    if let ultima = viewModel.ultimaActualizacion {
+                                        Text("Actualizado \(tiempoTranscurrido(desde: ultima))")
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.6))
+                                            .padding(.top, 5)
+                                    }
                                 }
                                 .padding(.top, 30)
                                 
-                                // Tarjetas de información
+                                // Tarjetas de información expandibles
                                 VStack(spacing: 15) {
                                     HStack(spacing: 15) {
-                                        TarjetaInfo(
-                                            icono: "drop.fill",
+                                        // Humedad expandible
+                                        TarjetaExpandible(
                                             titulo: "Humedad",
-                                            valor: viewModel.humedadTexto,
+                                            icono: "drop.fill",
+                                            valorPrincipal: viewModel.humedadTexto,
+                                            detalles: [
+                                                DetalleItem(
+                                                    icono: "thermometer",
+                                                    titulo: "Sensación térmica",
+                                                    valor: viewModel.sensacionTermica
+                                                ),
+                                                DetalleItem(
+                                                    icono: "cloud.fill",
+                                                    titulo: "Punto de rocío",
+                                                    valor: "~\(Int(clima.values.temperature - 5))°"
+                                                )
+                                            ],
                                             color: .cyan
                                         )
                                         
-                                        TarjetaInfo(
-                                            icono: "wind",
+                                        // Viento expandible
+                                        TarjetaExpandible(
                                             titulo: "Viento",
-                                            valor: viewModel.vientoTexto,
+                                            icono: "wind",
+                                            valorPrincipal: viewModel.vientoTexto,
+                                            detalles: [
+                                                DetalleItem(
+                                                    icono: "thermometer",
+                                                    titulo: "Sensación térmica",
+                                                    valor: viewModel.sensacionTermica
+                                                ),
+                                                DetalleItem(
+                                                    icono: "drop.fill",
+                                                    titulo: "Humedad relativa",
+                                                    valor: viewModel.humedadTexto
+                                                )
+                                            ],
                                             color: .mint
                                         )
                                     }
                                     
                                     HStack(spacing: 15) {
-                                        TarjetaInfo(
-                                            icono: "sun.max.fill",
+                                        // UV expandible
+                                        TarjetaExpandible(
                                             titulo: "Índice UV",
-                                            valor: "\(clima.values.uvIndex)",
+                                            icono: "sun.max.fill",
+                                            valorPrincipal: "\(clima.values.uvIndex)",
+                                            detalles: [
+                                                DetalleItem(
+                                                    icono: "exclamationmark.triangle.fill",
+                                                    titulo: "Nivel",
+                                                    valor: obtenerNivelUV(uv: clima.values.uvIndex)
+                                                ),
+                                                DetalleItem(
+                                                    icono: "clock.fill",
+                                                    titulo: "Protección",
+                                                    valor: obtenerProteccionUV(uv: clima.values.uvIndex)
+                                                )
+                                            ],
                                             color: .orange
                                         )
                                         
-                                        TarjetaInfo(
-                                            icono: "thermometer.medium",
-                                            titulo: "Clima",
-                                            valor: obtenerDescripcionClima(codigo: clima.values.weatherCode),
-                                            color: .yellow
+                                        // Clima expandible
+                                        TarjetaExpandible(
+                                            titulo: "Condiciones",
+                                            icono: "cloud.fill",
+                                            valorPrincipal: obtenerDescripcionClima(codigo: clima.values.weatherCode),
+                                            detalles: [
+                                                DetalleItem(
+                                                    icono: "thermometer.medium",
+                                                    titulo: "Temperatura",
+                                                    valor: viewModel.temperaturaTexto
+                                                ),
+                                                DetalleItem(
+                                                    icono: "eye.fill",
+                                                    titulo: "Visibilidad",
+                                                    valor: "Buena"
+                                                )
+                                            ],
+                                            color: .purple
                                         )
                                     }
                                 }
@@ -122,12 +181,21 @@ struct ContentView: View {
                                 CalidadAireView(calidadAire: viewModel.calidadAire)
                                     .padding(.top, 10)
                                 
+                                // Pronóstico por hora
+                                if !viewModel.pronosticoHorario.isEmpty {
+                                    PronosticoHorarioView(pronostico: viewModel.pronosticoHorario, usarFahrenheit: viewModel.usarFahrenheit)
+                                        .padding(.top, 10)
+                                }
+                                
                                 // Pronóstico semanal
                                 if !viewModel.pronosticoSemanal.isEmpty {
                                     PronosticoSemanalView(pronostico: viewModel.pronosticoSemanal, usarFahrenheit: viewModel.usarFahrenheit)
                                         .padding(.top, 10)
                                 }
                             }
+                        }
+                        .refreshable {
+                            await viewModel.buscarClima()
                         }
                     }
                     
@@ -263,6 +331,42 @@ struct ContentView: View {
         default: return "Variado"
         }
     }
+    
+    func tiempoTranscurrido(desde fecha: Date) -> String {
+        let segundos = Int(Date().timeIntervalSince(fecha))
+        
+        if segundos < 60 {
+            return "hace \(segundos)s"
+        } else if segundos < 3600 {
+            let minutos = segundos / 60
+            return "hace \(minutos)m"
+        } else if segundos < 86400 {
+            let horas = segundos / 3600
+            return "hace \(horas)h"
+        } else {
+            let dias = segundos / 86400
+            return "hace \(dias)d"
+        }
+    }
+    
+    func obtenerNivelUV(uv: Int) -> String {
+        switch uv {
+        case 0...2: return "Bajo"
+        case 3...5: return "Moderado"
+        case 6...7: return "Alto"
+        case 8...10: return "Muy Alto"
+        default: return "Extremo"
+        }
+    }
+
+    func obtenerProteccionUV(uv: Int) -> String {
+        switch uv {
+        case 0...2: return "No necesaria"
+        case 3...5: return "Bloqueador SPF 15+"
+        case 6...7: return "Bloqueador SPF 30+"
+        default: return "Bloqueador SPF 50+"
+        }
+    }
 }
 
 // Vista reutilizable para las tarjetas de información
@@ -295,5 +399,5 @@ struct TarjetaInfo: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(viewModel: WeatherViewModel())
 }
