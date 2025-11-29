@@ -18,13 +18,19 @@ struct MainTabView: View {
                     Label("Clima", systemImage: "cloud.sun.fill")
                 }
             
-            // Tab 2: Favoritos
+            // Tab 2: Favoritas
             FavoritosView(viewModel: viewModel)
                 .tabItem {
-                    Label("Favoritos", systemImage: "star.fill")
+                    Label("Favoritas", systemImage: "star.fill")
+                }
+            
+            // Tab 3: Estadísticas
+            StatisticsView(weatherViewModel: viewModel)
+                .tabItem {
+                    Label("Estadísticas", systemImage: "chart.bar.fill")
                 }
         }
-        .accentColor(.blue)
+        .tint(.white) // Color de los íconos seleccionados
     }
 }
 

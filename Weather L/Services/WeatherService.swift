@@ -35,7 +35,6 @@ class WeatherService {
     private let baseURL = "https://api.tomorrow.io/v4"
     private let geocoder = GeocodeService()
     
-    // MARK: - Clima Actual
     
     // Función principal para obtener el clima
     func obtenerClima(ciudad: String) async throws -> WeatherResponse {
@@ -86,7 +85,7 @@ class WeatherService {
         }
     }
     
-    // MARK: - Pronóstico Semanal (7 días)
+    
     
     func obtenerPronosticoSemanal(ciudad: String) async throws -> [DailyForecast] {
         

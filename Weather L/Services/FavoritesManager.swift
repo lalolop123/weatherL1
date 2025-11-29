@@ -19,7 +19,7 @@ class FavoritesManager {
     
     private init() {}
     
-    // MARK: - Ciudades Favoritas
+    // Ciudades Favoritas
     
     // Guardar lista completa de favoritas
     func guardarFavoritas(_ ciudades: [String]) {
@@ -62,7 +62,7 @@ class FavoritesManager {
         return favoritas.contains(ciudad)
     }
     
-    // MARK: - Última Ciudad Visitada
+    
     
     // Guardar la última ciudad consultada
     func guardarUltimaCiudad(_ ciudad: String) {
@@ -77,7 +77,7 @@ class FavoritesManager {
         return ciudad
     }
     
-    // MARK: - Preferencia de Unidad de Temperatura
+    
     
     // Guardar preferencia °C o °F
     func guardarPreferenciaUnidad(_ usarFahrenheit: Bool) {
@@ -92,9 +92,9 @@ class FavoritesManager {
         return usarF
     }
     
-    // MARK: - Limpiar Datos
+
     
-    // Eliminar todos los datos guardados (útil para testing)
+    // Eliminar todos los datos guardados
     func limpiarTodo() {
         defaults.removeObject(forKey: favoritasKey)
         defaults.removeObject(forKey: ultimaCiudadKey)
