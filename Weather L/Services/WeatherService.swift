@@ -30,7 +30,7 @@ enum WeatherError: Error {
 
 class WeatherService {
     
-    // 🔑 API KEY DE TOMORROW.IO
+    // API KEY DE TOMORROW.IO
     private let apiKey = "8CAqCK7mXkH1HSDNgKFzgAX6rL2TD4g3"
     private let baseURL = "https://api.tomorrow.io/v4"
     private let geocoder = GeocodeService()
@@ -39,10 +39,10 @@ class WeatherService {
     // Función principal para obtener el clima
     func obtenerClima(ciudad: String) async throws -> WeatherResponse {
         
-        // 1. Obtenemos las coordenadas usando geocodificación
+        
         let (lat, lon, nombreCiudad) = try await geocoder.obtenerCoordenadas(ciudad: ciudad)
         
-        // 2. Construimos la URL
+      
         let urlCompleta = "\(baseURL)/weather/realtime?location=\(lat),\(lon)&apikey=\(apiKey)&units=metric"
         
         print("🌐 Consultando API: \(urlCompleta)")
@@ -51,7 +51,7 @@ class WeatherService {
             throw WeatherError.errorDelServidor
         }
         
-        // 3. Hacemos la petición
+      
         do {
             let (data, respuesta) = try await URLSession.shared.data(from: url)
             
@@ -127,7 +127,7 @@ class WeatherService {
         }
     }
     
-    // MARK: - Pronóstico Horario (24 horas)
+    Pronóstico Horario (24 horas)
     
     func obtenerPronosticoHorario(ciudad: String) async throws -> [HourlyForecast] {
         
